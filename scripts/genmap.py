@@ -1,3 +1,4 @@
+import json
 import math
 import uuid
 
@@ -27,14 +28,23 @@ def _isnum(val) -> bool:
     return False
 
 
-def _path(*args) -> str:
+def _catpath(*args) -> str:
     p = ''
     for arg in args:
         if _isnil(arg):
             continue
         if p != '':
             p = p + "/"
-        p = p + str(arg)
+        p = p + str(arg).strip()
+
+    if p == 'air':
+        return 'Elementary flows/emission/air'
+    if p == 'ground':
+        return 'Elementary flows/resource/ground'
+    if p == 'soil':
+        return 'Elementary flows/emission/soil'
+    if p == 'water':
+        return 'Elementary flows/emission/water'
     return p
 
 
@@ -53,6 +63,18 @@ class MapFlow(object):
         self.property = None  # type: str
         self.unit = None      # type: str
 
+    def to_json(self) -> dict:
+        ref = olca.FlowRef()
+        ref.name = self.name
+        if self.category is not None:
+            ref.category_path = self.category.split('/')
+        if self.uid is None:
+            ref.id = _uid(olca.ModelType.FLOW,
+                          self.category, self.name)
+        else:
+            ref.id = self.uid
+        return ref.to_json()
+
 
 class MapEntry(object):
     """ Describes a mapping entry in the Fed.LCA flow list. """
@@ -65,9 +87,9 @@ class MapEntry(object):
         self.source_flow = MapFlow()
         self.source_flow.name = _s(row['SourceFlowName'])
         self.source_flow.uid = _s(row['SourceFlowUUID'])
-        self.source_flow.category = _path(row['SourceFlowCategory1'],
-                                          row['SourceFlowCategory2'],
-                                          row['SourceFlowCategory3'])
+        self.source_flow.category = _catpath(row['SourceFlowCategory1'],
+                                             row['SourceFlowCategory2'],
+                                             row['SourceFlowCategory3'])
         self.source_flow.property = _s(row['SourceProperty'])
         self.source_flow.unit = _s(row['SourceUnit'])
 
@@ -75,9 +97,9 @@ class MapEntry(object):
         self.target_flow = MapFlow()
         self.target_flow.name = _s(row['TargetFlowName'])
         self.target_flow.uid = _s(row['TargetFlowUUID'])
-        self.target_flow.category = _path(row['TargetFlowCategory1'],
-                                          row['TargetFlowCategory2'],
-                                          row['TargetFlowCategory3'])
+        self.target_flow.category = _catpath(row['TargetFlowCategory1'],
+                                             row['TargetFlowCategory2'],
+                                             row['TargetFlowCategory3'])
         self.target_flow.property = _s(row['TargetProperty'])
         self.target_flow.unit = _s(row['TargetUnit'])
 
@@ -88,6 +110,11 @@ class MapEntry(object):
             self.factor = 1.0
 
     def to_json(self) -> dict:
+        return {
+            'sourceFlow': self.source_flow.to_json(),
+            'targetFlow': self.target_flow.to_json(),
+            'conversionFactor': self.factor,
+        }
 
 
 def main():
@@ -115,7 +142,10 @@ def main():
         }
         for e in entries:
             mappings.append(e.to_json())
-        print(source_list, len(entries))
+        with open('../target/%s.json' % source_list, 'w',
+                  encoding='utf-8') as f:
+            json.dump(mapping, f, indent='  ')
+        print(source_list, " created")
 
 
 if __name__ == "__main__":

@@ -15,4 +15,25 @@ public class FlowMapEntry {
 	 */
 	public double factor;
 
+	public SyncState syncState;
+
+	/**
+	 * SyncState describes the state a mapping entry can have when synced with a
+	 * database.
+	 */
+	public enum SyncState {
+
+		UNFOUND_SOURCE,
+
+		UNFOUND_TARGET,
+
+		INVALID_SOURCE,
+
+		INVALID_TARGET,
+
+		MATCHED,
+
+		APPLIED,
+
+	}
 }

@@ -64,16 +64,18 @@ class MapFlow(object):
         self.unit = None      # type: str
 
     def to_json(self) -> dict:
-        ref = olca.FlowRef()
-        ref.name = self.name
+        flow_ref = olca.FlowRef()
+        flow_ref.name = self.name
         if self.category is not None:
-            ref.category_path = self.category.split('/')
+            flow_ref.category_path = self.category.split('/')
         if self.uid is None:
-            ref.id = _uid(olca.ModelType.FLOW,
-                          self.category, self.name)
+            flow_ref.id = _uid(olca.ModelType.FLOW,
+                               self.category, self.name)
         else:
-            ref.id = self.uid
-        return ref.to_json()
+            flow_ref.id = self.uid
+        return {
+            'flow': flow_ref.to_json()
+        }
 
 
 class MapEntry(object):
@@ -111,8 +113,8 @@ class MapEntry(object):
 
     def to_json(self) -> dict:
         return {
-            'sourceFlow': self.source_flow.to_json(),
-            'targetFlow': self.target_flow.to_json(),
+            'from': self.source_flow.to_json(),
+            'to': self.target_flow.to_json(),
             'conversionFactor': self.factor,
         }
 

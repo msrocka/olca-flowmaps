@@ -3,6 +3,7 @@ import math
 import uuid
 
 import olca
+import olca.pack
 import fedelemflowlist
 
 
@@ -121,8 +122,10 @@ class MapEntry(object):
 
 def main():
     # returns a pandas DataFrame
+    print('read CSV mapping ...')
     flow_map = fedelemflowlist.get_flowmapping(version='0.1')
 
+    print('convert mappings ...')
     maps = {}
     for i, row in flow_map.iterrows():
         me = MapEntry(row)
@@ -132,23 +135,29 @@ def main():
             maps[me.source_list] = m
         m.append(me)
 
+    print('create flow maps ...')
+    flow_maps = []
     for source_list, entries in maps.items():
         list_ref = olca.Ref()
         list_ref.olca_type = 'FlowMap'
         list_ref.name = source_list
         mappings = []
-        mapping = {
+        flow_map = {
+            '@id': str(uuid.uuid4()),
             'name': '%s -> Fed.LCA Commons' % source_list,
             'source': list_ref.to_json(),
             'mappings': mappings
         }
         for e in entries:
             mappings.append(e.to_json())
-        with open('../target/%s.json' % source_list, 'w',
-                  encoding='utf-8') as f:
-            json.dump(mapping, f, indent='  ')
-        print(source_list, " created")
+        flow_maps.append(flow_map)
 
+    print('add maps to flow pack ...')
+    w = olca.pack.Writer('../target/FedElemFlowList_0.2_json-ld.zip')
+    for flow_map in flow_maps:
+        w.write_json(flow_map, 'flow_mappings')
+    w.close()
+    print('all done')
 
 if __name__ == "__main__":
     main()

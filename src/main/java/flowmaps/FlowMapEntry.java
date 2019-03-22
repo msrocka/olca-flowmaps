@@ -31,6 +31,12 @@ public class FlowMapEntry {
 
 		INVALID_TARGET,
 
+		/**
+		 * Indicates that the source flow was already assigned in another
+		 * mapping.
+		 */
+		DUPLICATE,
+
 		MATCHED,
 
 		APPLIED,

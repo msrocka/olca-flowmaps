@@ -4,10 +4,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.gson.JsonObject;
+
 import org.openlca.core.database.FlowDao;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.model.Flow;
-import org.openlca.core.model.descriptors.FlowDescriptor;
+import org.openlca.core.model.ModelType;
 import org.openlca.jsonld.EntityStore;
 
 import flowmaps.FlowMapEntry.SyncState;
@@ -25,10 +27,8 @@ public class FlowMaps {
 	public static void sync(FlowMap map, EntityStore store, IDatabase db) {
 		if (map == null || store == null || db == null)
 			return;
-		for (FlowMapEntry e : map.entries) {
-
-		}
-
+		FlowMaps maps = new FlowMaps(store, db);
+		maps.sync(map);
 	}
 
 	public static void apply(FlowMap map, EntityStore store, IDatabase db) {
@@ -38,7 +38,7 @@ public class FlowMaps {
 		if (map == null)
 			return;
 		FlowDao dao = new FlowDao(db);
-		Map<String, Flow> sourceFlows = dao.getAll()
+		Map<String, Flow> dbFlows = dao.getAll()
 				.stream().collect(Collectors
 						.toMap(d -> d.refId, d -> d));
 		HashSet<String> handled= new HashSet<>();
@@ -59,18 +59,36 @@ public class FlowMaps {
 				e.syncState = SyncState.DUPLICATE;
 				continue;
 			}
-			Flow sourceFlow = sourceFlows.get(sourceID);
+			Flow sourceFlow = dbFlows.get(sourceID);
 			if (sourceFlow == null) {
 				e.syncState = SyncState.UNFOUND_SOURCE;
 				continue;
 			}
 			// TODO: validate a possible flow property and unit
+
 			if (e.targetFlow == null || e.targetFlow.flow == null) {
 				e.syncState = SyncState.INVALID_TARGET;
 				continue;
 			}
+			String targetID = e.targetFlow.flow.refId;
+			if (targetID == null) {
+				e.syncState = SyncState.INVALID_TARGET;
+				continue;
+			}
+			Flow targetFlow = dbFlows.get(targetID);
+			if (targetFlow != null) {
+				// TODO: validate flow property + unit
+			} else {
+				JsonObject obj = jstore.get(ModelType.FLOW, targetID);
+				if (obj == null) {
+					e.syncState = SyncState.UNFOUND_TARGET;
+					continue;
+				}
+				// TODO: validate flow property + unit
+				// on JSON object
+			}
 
-
+			e.syncState = SyncState.MATCHED;
 		}
 	}
 }

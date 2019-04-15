@@ -1,5 +1,6 @@
 package flowmaps;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.List;
@@ -12,7 +13,7 @@ import org.slf4j.LoggerFactory;
 /**
  * An IMapProvider describes a repository of flows and mapping definitions.
  */
-public interface IMapProvider {
+public interface IMapProvider extends Closeable {
 
 	/**
 	 * Retruns a list of mapping definitions of this provider. There are different
@@ -77,6 +78,8 @@ public interface IMapProvider {
 						return ILCD_PACKAGE;
 					}
 				}
+				log.info("No flows found in {}; "
+					+ "-> unknown mapping format", file);
 				return UNKNOWN;
 			} catch (Exception e) {
 				log.error("Failed to open file " + file, e);
@@ -84,5 +87,4 @@ public interface IMapProvider {
 			}
 		}
 	}
-
 }

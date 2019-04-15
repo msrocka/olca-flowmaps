@@ -3,6 +3,10 @@ package flowmaps;
 import org.openlca.core.model.descriptors.BaseDescriptor;
 import org.openlca.core.model.descriptors.FlowDescriptor;
 
+/**
+ * A FlowRef describes a reference to a (source or target) flow in a mapping
+ * entry.
+ */
 public class FlowRef {
 
 	/**
@@ -21,4 +25,5 @@ public class FlowRef {
 	 * group of the flow property is taken by default.
 	 */
 	public BaseDescriptor unit;
+
 }

@@ -1,5 +1,8 @@
 package flowmaps;
 
+/**
+ * A FlowMapEntry describes a single mapping between two flows.
+ */
 public class FlowMapEntry {
 
 	/** Describes a flow of the source system of a conversion. */
@@ -15,7 +18,16 @@ public class FlowMapEntry {
 	 */
 	public double factor;
 
+	/**
+	 * Describes a synchronization result of this flow mapping with a database.
+	 */
 	public SyncState syncState;
+
+	/**
+	 * An additional message that gives more information about the
+	 * synchronization result.
+	 */
+	public String syncMessage;
 
 	/**
 	 * SyncState describes the state a mapping entry can have when synced with a
@@ -23,12 +35,26 @@ public class FlowMapEntry {
 	 */
 	public enum SyncState {
 
+		/**
+		 * Indicates that the source flow of the mapping entry was not found.
+		 */
 		UNFOUND_SOURCE,
 
+		/**
+		 * Indicates that the target flow of the mapping entry was not found.
+		 */
 		UNFOUND_TARGET,
 
+		/**
+		 * Indicates that the source flow does not contain valid information
+		 * (e.g. the flow in the database does not have a unit that was
+		 * specified in the mapping).
+		 */
 		INVALID_SOURCE,
 
+		/**
+		 * Indicates that the target flow does not contain valid information.
+		 */
 		INVALID_TARGET,
 
 		/**
@@ -40,6 +66,5 @@ public class FlowMapEntry {
 		MATCHED,
 
 		APPLIED,
-
 	}
 }

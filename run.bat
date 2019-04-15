@@ -1,1 +1,1 @@
-mvn compile exec:java -Dexec.mainClass="olca-flowmaps.Main" -q
+mvn compile exec:java -Dexec.mainClass="examples.%1" -q
